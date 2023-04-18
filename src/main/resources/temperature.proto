@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "ds.smartbuilding.temperature";
+option java_outer_classname = "TemperatureServiceImpl";
+
+package temperature;
+
+//define services
+service TemperatureService {
+
+	rpc setTemp(setTempRequest) returns (setTempResponse) {}
+	
+  	rpc getTemp(getTempRequest) returns (getTempResponse) {}
+}
+
+
+//define messages
+message setTempRequest {
+	string areaCode = 1;
+    double temperature = 2;
+}
+
+message setTempResponse {
+    string msgResponse = 1;
+}
+
+message getTempRequest {
+	string areaCode = 1;
+}
+
+message getTempResponse {
+    double temperature = 1;
+}

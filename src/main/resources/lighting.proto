@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "ds.smartbuilding.lighting";
+option java_outer_classname = "LightServiceImpl";
+
+package lighting;
+
+//define services
+service LightService {
+
+	rpc lightOn(lightOnRequest) returns (lightResponse) {}
+	
+  	rpc lightOff(lightOffRequest) returns (lightResponse) {}
+
+}
+
+//define messages
+message lightOnRequest {
+	string areaCode = 1;
+}
+
+message lightOffRequest {
+    string areaCode = 1;
+}
+
+message lightResponse {
+	string msgResponse = 1;
+}
