@@ -10,8 +10,10 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 
 public class LightingClient {
+	//create logger
 	private static final Logger logger = Logger.getLogger(LightingClient.class.getName());
 	
+	//create blockingStub
 	public static LightServiceGrpc.LightServiceBlockingStub blockingStub;
 	
 	public static void main(String[] args) throws Exception{
@@ -37,11 +39,15 @@ public class LightingClient {
 		channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
 	}
 	
+	//Light On method
 	public static void lightOn() {
 		try {
+			//hardcode vars for testing
 			String areaCode = "Floor1";
+			//Light On request
 			lightOnRequest request = lightOnRequest.newBuilder().setAreaCode(areaCode).build();
 		
+			//Light On response
 			lightResponse response = blockingStub.lightOn(request);
 			System.out.println("Lights in area "+ areaCode + " turned on.");
 		}
@@ -52,18 +58,20 @@ public class LightingClient {
 	    }
 	}
 	
-	
+	//Light Off method
 	public static void lightOff() {
 		try {
+			//hardcode vars for testing
 			String areaCode = "Floor3";
+			//Light Off request
 			lightOffRequest request = lightOffRequest.newBuilder().setAreaCode(areaCode).build();
 			
+			//Light Off response
 			lightResponse response = blockingStub.lightOff(request);
 			System.out.println("Lights in area "+ areaCode + " turned off.");
 		}
 		catch (StatusRuntimeException e) {
 		    logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
-		    
 		    return;		   
 	    }
 	}

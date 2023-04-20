@@ -70,7 +70,7 @@ public class TemperatureGUI {
 		frame.setTitle("GUI Client for Temperature Controller");
 		frame.setBounds(100, 100, 625, 400);
 		frame.setResizable(false);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		
 		BoxLayout bl = new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS);
 		
