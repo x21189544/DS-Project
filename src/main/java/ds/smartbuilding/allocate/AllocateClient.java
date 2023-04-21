@@ -3,6 +3,8 @@ package ds.smartbuilding.allocate;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.JOptionPane;
+
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
@@ -37,6 +39,7 @@ public class AllocateClient{
 			@Override
 			public void onNext(meetingRoomResponse value) {
 				System.out.println("Receiving name: " + value.getMeetingRoom());
+				JOptionPane.showMessageDialog(null, value.getMeetingRoom());
 				
 			}
 

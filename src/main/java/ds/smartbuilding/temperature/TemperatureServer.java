@@ -1,8 +1,15 @@
 package ds.smartbuilding.temperature;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.util.Properties;
 import java.util.Random;
 import java.util.logging.Logger;
+
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceInfo;
 
 import ds.smartbuilding.temperature.TemperatureServiceGrpc.TemperatureServiceImplBase;
 import io.grpc.Server;
@@ -15,9 +22,17 @@ public class TemperatureServer extends TemperatureServiceImplBase {
 	
 	public static void main(String[] args){
 		TemperatureServer tempserver = new TemperatureServer();
-		int port = 50055;
+		//set properties
+		Properties prop = tempserver.getProperties();
+		//RegisterService
+		tempserver.registerService(prop);
+		int port = Integer.valueOf(prop.getProperty("service_port"));
+		//build server
 		try {
-			Server server = ServerBuilder.forPort(port).addService(tempserver).build().start();
+			Server server = ServerBuilder.forPort(port)
+					.addService(tempserver)
+					.build()
+					.start();
 			logger.info("Server started, listening on " + port);
 			server.awaitTermination();
 		}
@@ -25,6 +40,56 @@ public class TemperatureServer extends TemperatureServiceImplBase {
 			e.printStackTrace();
 		}
 		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	//get properties from temperature.properties file
+	private Properties getProperties() {
+		Properties prop = null;
+		try (InputStream input = new FileInputStream("src/main/resources/temperature.properties")){
+            
+			prop = new Properties();
+
+            // load a properties file
+            prop.load(input);
+            // get the property value and print it out
+            System.out.println("Temperature Service properies ...");
+            System.out.println("\t service_type: " + prop.getProperty("service_type"));
+            System.out.println("\t service_name: " +prop.getProperty("service_name"));
+            System.out.println("\t service_description: " +prop.getProperty("service_description"));
+	        System.out.println("\t service_port: " +prop.getProperty("service_port"));
+		}
+		catch (IOException ex) {
+            ex.printStackTrace();
+        }
+		return prop;
+	}
+	
+	//register service method
+	private void registerService(Properties prop) {
+		try {
+			// Create a JmDNS instance
+			JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
+			
+			String service_type = prop.getProperty("service_type");
+			String service_name = prop.getProperty("service_name");
+			int service_port = Integer.valueOf(prop.getProperty("service_port"));
+			String service_description_properties = prop.getProperty("service_description");
+			
+			//Register a service
+			ServiceInfo serviceInfo = ServiceInfo.create(service_type, service_name, service_port, service_description_properties);
+			jmdns.registerService(serviceInfo);
+			System.out.printf("registrering service with type %s and name %s \n", service_type, service_name);
+			
+			//Wait
+			Thread.sleep(1000);
+		}
+		catch (IOException e) {
+            System.out.println(e.getMessage());
+        } 
+		catch (InterruptedException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
