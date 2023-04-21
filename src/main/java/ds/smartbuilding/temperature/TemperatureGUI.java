@@ -5,9 +5,16 @@ import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceInfo;
+import javax.jmdns.ServiceListener;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -30,6 +37,9 @@ public class TemperatureGUI {
 	//create blockingStub
 	public static TemperatureServiceGrpc.TemperatureServiceBlockingStub blockingStub;
 	
+	//variables
+	private ServiceInfo tempServiceInfo;
+	
 	//JFrame components
 	private JFrame frame;
 	private JTextField tempInputSet;
@@ -37,20 +47,7 @@ public class TemperatureGUI {
 	private JTextArea textResponseGet;
 	
 	//Launch application
-	public static void main(String[] args) throws Exception{
-		//define host and port variables
-		String host = "localhost";
-		int port = 50055;
-		
-		//build channel
-		ManagedChannel channel = ManagedChannelBuilder
-				.forAddress(host, port)
-				.usePlaintext()
-				.build();
-		
-		//stubs
-		blockingStub = TemperatureServiceGrpc.newBlockingStub(channel);
-		
+	public static void main(String[] args){
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -64,8 +61,78 @@ public class TemperatureGUI {
 		});
 	}
 	
-	//Initialize JFrame
+	//create application
 	public TemperatureGUI() {
+		String temp_service_type = "_temperature._tcp.local.";
+		discoverTempService(temp_service_type);
+		//get host and port variables
+		String host = tempServiceInfo.getHostAddresses()[0];
+		int port = tempServiceInfo.getPort();
+		
+		//build channel
+		ManagedChannel channel = ManagedChannelBuilder
+				.forAddress(host, port)
+				.usePlaintext()
+				.build();
+		
+		//stubs
+		blockingStub = TemperatureServiceGrpc.newBlockingStub(channel);
+		
+		//call method
+		initialize();
+	}
+	
+	//discover jmdns
+	private void discoverTempService(String service_type) {
+		try {
+			// Create a JmDNS instance
+			JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
+			jmdns.addServiceListener(service_type, new ServiceListener() {
+
+				@Override
+				public void serviceAdded(ServiceEvent event) {
+					System.out.println("Temperature Service added: " + event.getInfo());
+					
+				}
+
+				@Override
+				public void serviceRemoved(ServiceEvent event) {
+					System.out.println("Temperature Service removed: " + event.getInfo());
+					
+				}
+
+				@Override
+				public void serviceResolved(ServiceEvent event) {
+					System.out.println("Temperature Service resolved: " + event.getInfo());
+					tempServiceInfo = event.getInfo();
+					int port = tempServiceInfo.getPort();
+					System.out.println("resolving " + service_type + " with properties ...");
+					System.out.println("\t port: " + port);
+					System.out.println("\t type:"+ event.getType());
+					System.out.println("\t name: " + event.getName());
+					System.out.println("\t description/properties: " + tempServiceInfo.getNiceTextString());
+					System.out.println("\t host: " + tempServiceInfo.getHostAddresses()[0]);
+				}
+				
+			});
+			// Wait a bit
+			Thread.sleep(2000);
+			
+			jmdns.close();
+		}
+		catch (UnknownHostException e) {
+			System.out.println(e.getMessage());
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+	//Initialize JFrame
+	public void initialize() {
 		frame = new JFrame();
 		frame.setTitle("GUI Client for Temperature Controller");
 		frame.setBounds(100, 100, 625, 400);

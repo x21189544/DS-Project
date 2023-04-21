@@ -90,7 +90,7 @@ public class AllocateServer extends AllocateServiceImplBase {
             System.out.println(e.getMessage());
         } 
 		catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 	}

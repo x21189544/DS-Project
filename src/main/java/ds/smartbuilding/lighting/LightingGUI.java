@@ -5,9 +5,16 @@ import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceInfo;
+import javax.jmdns.ServiceListener;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -28,25 +35,15 @@ public class LightingGUI {
 	//create blockingStub
 	public static LightServiceGrpc.LightServiceBlockingStub blockingStub;
 	
+	//variables
+	private ServiceInfo lightingServiceInfo;
+	
 	//JFrame components
 	private JFrame frame;
 	private JTextArea textResponse;
 	
 	//Launch application
 	public static void main(String[] args) throws Exception{
-		//define host and port variables
-		String host = "localhost";
-		int port = 50056;
-		
-		//build channel
-		ManagedChannel channel = ManagedChannelBuilder
-				.forAddress(host, port)
-				.usePlaintext()
-				.build();
-		
-		//stubs
-		blockingStub = LightServiceGrpc.newBlockingStub(channel);
-		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -58,10 +55,85 @@ public class LightingGUI {
 				}
 			}
 		});
+		
+	}
+	
+	//create application
+	public LightingGUI() {
+		String light_service_type = "_light._tcp.local.";
+		discoverLightingService(light_service_type);
+		//get host and port variables
+		String host = lightingServiceInfo.getHostAddresses()[0];
+		int port = lightingServiceInfo.getPort();
+		//build channel
+		ManagedChannel channel = ManagedChannelBuilder
+				.forAddress(host, port)
+				.usePlaintext()
+				.build();
+		
+		//stubs
+		blockingStub = LightServiceGrpc.newBlockingStub(channel);
+		
+		//call method
+		initialize();
+	}
+	
+	//discover jmdns
+	private void discoverLightingService(String Lservice_type) {
+		try {
+			// Create a JmDNS instance
+			JmDNS jmdnsL = JmDNS.create(InetAddress.getLocalHost());
+			jmdnsL.addServiceListener(Lservice_type, new ServiceListener() {
+
+				@Override
+				public void serviceAdded(ServiceEvent event) {
+					System.out.println("Lighting Service added: " + event.getInfo());
+					
+				}
+
+				@Override
+				public void serviceRemoved(ServiceEvent event) {
+					System.out.println("Lighting Service removed: " + event.getInfo());
+					
+				}
+
+				@Override
+				public void serviceResolved(ServiceEvent event) {
+					System.out.println("info port + ");
+					ServiceInfo info = event.getInfo();
+					int port1 = info.getPort();
+					System.out.println("info port + " + port1);
+					System.out.println("Lighting Service resolved: " + event.getInfo());
+					lightingServiceInfo = event.getInfo();
+					System.out.println("info + " + event.getInfo());
+					int port = lightingServiceInfo.getPort();
+					System.out.println("resolving " + Lservice_type + " with properties ...");
+					System.out.println("\t port: " + port);
+					System.out.println("\t type:"+ event.getType());
+					System.out.println("\t name: " + event.getName());
+					System.out.println("\t description/properties: " + lightingServiceInfo.getNiceTextString());
+					System.out.println("\t host: " + lightingServiceInfo.getHostAddresses()[0]);
+					
+				}
+				
+			});
+			// Wait a bit
+			Thread.sleep(2000);
+			
+			//jmdnsL.close();
+		}
+		catch (UnknownHostException e) {
+			System.out.println(e.getMessage());
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	//Initialize JFrame
-	public LightingGUI() {
+	public void initialize() {
 		frame = new JFrame();
 		frame.setTitle("GUI Client for Lighting Controller");
 		frame.setBounds(100, 100, 400, 250);

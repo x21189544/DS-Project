@@ -89,7 +89,6 @@ public class TemperatureServer extends TemperatureServiceImplBase {
             System.out.println(e.getMessage());
         } 
 		catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

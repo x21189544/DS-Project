@@ -70,18 +70,18 @@ public class LightingServer extends LightServiceImplBase {
 	private void registerService(Properties prop) {
 		try {
 			// Create a JmDNS instance
-			JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
+			JmDNS jmdnsLight = JmDNS.create(InetAddress.getLocalHost());
 			
-			String service_type = prop.getProperty("service_type");
-			String service_name = prop.getProperty("service_name");
-			int service_port = Integer.valueOf(prop.getProperty("service_port"));
-			String service_description_properties = prop.getProperty("service_description");
+			String light_service_type = prop.getProperty("service_type");
+			String light_service_name = prop.getProperty("service_name");
+			int light_service_port = Integer.valueOf(prop.getProperty("service_port"));
+			String light_service_description_properties = prop.getProperty("service_description");
 			
 			//Register a service
-			ServiceInfo serviceInfo = ServiceInfo.create(service_type, service_name, service_port, service_description_properties);
-			jmdns.registerService(serviceInfo);
-			System.out.printf("registrering service with type %s and name %s \n", service_type, service_name);
-			
+			ServiceInfo lightServiceInfo = ServiceInfo.create(light_service_type, light_service_name, light_service_port, light_service_description_properties);
+			jmdnsLight.registerService(lightServiceInfo);
+			System.out.printf("registrering service with type %s and name %s \n", light_service_type, light_service_name);
+			System.out.println(lightServiceInfo);
 			//Wait
 			Thread.sleep(1000);
 		}
@@ -89,7 +89,6 @@ public class LightingServer extends LightServiceImplBase {
             System.out.println(e.getMessage());
         } 
 		catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
