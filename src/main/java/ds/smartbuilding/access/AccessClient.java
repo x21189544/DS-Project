@@ -156,7 +156,7 @@ public class AccessClient {
 	public void initialize() {
 		frame = new JFrame();
 		frame.setTitle("GUI Client for Access Controller");
-		frame.setBounds(100, 100, 250, 300);
+		frame.setBounds(100, 100, 400, 300);
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		
@@ -168,7 +168,7 @@ public class AccessClient {
 		JPanel panel_report = new JPanel();
 		frame.getContentPane().add(panel_report);
 		panel_report.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 20));
-		panel_report.setBackground(Color.orange);
+		panel_report.setBackground(Color.magenta);
 		
 		//JPanel3 for occupant checklist title
 		JPanel panel_checklist = new JPanel();

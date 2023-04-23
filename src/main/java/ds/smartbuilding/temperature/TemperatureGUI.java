@@ -212,19 +212,27 @@ public class TemperatureGUI {
 				try {
 					System.out.println(comboAreaSet.getSelectedItem()); //set selected item from drop down combo box
 					String areaCode = (String) comboAreaSet.getSelectedItem(); //convert drop down item selection to string to pass to grpc
-					double temp = Double.parseDouble(tempInputSet.getText()); //parse input temperature from string to double
-					if (temp >= 15 && temp <= 30) {
-						//send set temperature request
-						setTempRequest request = setTempRequest.newBuilder().setAreaCode(areaCode).setTemperature(temp).build();
-						//get set temperature response, deadline, metadata
-						CallOptions.Key<String> metaDataKey = CallOptions.Key.create("my_key");
-						setTempResponse response = blockingStub.withOption(metaDataKey, "bar").withDeadlineAfter(2000, TimeUnit.MILLISECONDS).setTemp(request);
-						System.out.println("output response is +"+response); //print output response
-						textResponseSet.setText(response.getMsgResponse()); //set textResponseSet as the message response
+					try
+					{
+						double temp = Double.parseDouble(tempInputSet.getText()); //parse input temperature from string to double
+						if (temp >= 15 && temp <= 30) {
+							//send set temperature request
+							setTempRequest request = setTempRequest.newBuilder().setAreaCode(areaCode).setTemperature(temp).build();
+							//get set temperature response, deadline, metadata
+							CallOptions.Key<String> metaDataKey = CallOptions.Key.create("my_key");
+							setTempResponse response = blockingStub.withOption(metaDataKey, "bar").withDeadlineAfter(2000, TimeUnit.MILLISECONDS).setTemp(request);
+							System.out.println("output response is +"+response); //print output response
+							textResponseSet.setText(response.getMsgResponse()); //set textResponseSet as the message response
+						}
+						else {
+							JOptionPane.showMessageDialog(null, "Enter a value between 15.0 and 30.0");
+						}
 					}
-					else {
-						JOptionPane.showMessageDialog(null, "Enter a value between 15.0 and 30.0");
+					catch(NumberFormatException e1)
+					{
+						JOptionPane.showMessageDialog(null, "Enter a NUMBER value between 15.0 and 30.0");
 					}
+					
 				}
 				//catch runtime exception
 				catch (StatusRuntimeException e1) {
@@ -268,6 +276,8 @@ public class TemperatureGUI {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				String clientId = Constants.CLIENT_ID_CONTEXT_KEY.get();
+				System.out.println("Processing request from " + clientId);
 				System.out.println("Get Button Pressed");
 				try {
 					String areaCode = (String) comboAreaGet.getSelectedItem(); //get selected item from drop down combo box

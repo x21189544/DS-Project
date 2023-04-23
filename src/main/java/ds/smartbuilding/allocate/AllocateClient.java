@@ -152,7 +152,7 @@ public class AllocateClient{
 	public void initialize() {
 		frame = new JFrame();
 		frame.setTitle("GUI Client for Allocate Controller");
-		frame.setBounds(100, 100, 250, 200);
+		frame.setBounds(100, 100, 400, 200);
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		
