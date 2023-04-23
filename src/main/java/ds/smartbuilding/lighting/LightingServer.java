@@ -35,11 +35,9 @@ public class LightingServer extends LightServiceImplBase {
 					.start();
 			logger.info("Server started, listening on " + port);
 			server.awaitTermination();
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
-		}
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
@@ -84,11 +82,9 @@ public class LightingServer extends LightServiceImplBase {
 			System.out.println(lightServiceInfo);
 			//Wait
 			Thread.sleep(1000);
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
             System.out.println(e.getMessage());
-        } 
-		catch (InterruptedException e) {
+        } catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}

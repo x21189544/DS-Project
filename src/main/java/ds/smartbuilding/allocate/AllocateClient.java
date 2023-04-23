@@ -1,16 +1,25 @@
 package ds.smartbuilding.allocate;
 
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Random;
 import java.util.logging.Logger;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -26,18 +35,26 @@ public class AllocateClient{
 	//variables
 	private ServiceInfo allocateServiceInfo;
 	
+	//JFrame components
+	private JFrame frame;
+	private static JTextArea textResponse;
+	
 	//Launch application
 	public static void main(String[] args) throws Exception{
-		
-		AllocateClient client = new AllocateClient();
-		
-		//call function
-		allocateRoom();
-		
-		//shutdown channel
-		//channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					AllocateClient window = new AllocateClient();
+					window.frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+				
 	}
 	
+	//create application
 	public AllocateClient() {
 		String allocate_service_type = "_allocate._tcp.local.";
 		discoverAccessService(allocate_service_type);
@@ -53,6 +70,9 @@ public class AllocateClient{
 		
 		//stubs
 		asyncStub = AllocateServiceGrpc.newStub(channel);
+		
+		//call method
+		initialize();
 	}
 	
 	//discover jmdns
@@ -65,18 +85,16 @@ public class AllocateClient{
 				@Override
 				public void serviceAdded(ServiceEvent event) {
 					System.out.println("Allocate Service added: " + event.getInfo());
-					
 				}
 
 				@Override
 				public void serviceRemoved(ServiceEvent event) {
 					System.out.println("Allocate Service removed: " + event.getInfo());
-					
 				}
 
 				@Override
 				public void serviceResolved(ServiceEvent event) {
-					System.out.println("Temperature Service resolved: " + event.getInfo());
+					System.out.println("Allocate Service resolved: " + event.getInfo());
 					allocateServiceInfo = event.getInfo();
 					int port = allocateServiceInfo.getPort();
 					System.out.println("resolving " + allocate_service_type + " with properties ...");
@@ -92,17 +110,47 @@ public class AllocateClient{
 			// Wait a bit
 			Thread.sleep(2000);
 			
-			//jmdnsAllocate.close();
-		}
-		catch (UnknownHostException e) {
+			jmdnsAllocate.close();
+		} catch (UnknownHostException e) {
 			System.out.println(e.getMessage());
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	//Initialize JFrame
+	public void initialize() {
+		frame = new JFrame();
+		frame.setTitle("GUI Client for Allocate Controller");
+		frame.setBounds(100, 100, 250, 200);
+		frame.setResizable(false);
+		frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		
+		BoxLayout bl = new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS);
+		
+		frame.getContentPane().setLayout(bl);
+		
+		//JPanel for occupant report 
+		JPanel panel_allocate = new JPanel();
+		frame.getContentPane().add(panel_allocate);
+		panel_allocate.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 20));
+		panel_allocate.setBackground(Color.orange);
+		
+		//buttons
+		JButton btnAllocate = new JButton("Start Allocate Meeting Room");
+		btnAllocate.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				allocateRoom();
+			}
+			
+		});
+		panel_allocate.add(btnAllocate);
+		textResponse = new JTextArea(3,20);
+		panel_allocate.add(textResponse);
 	}
 	
 	public static void allocateRoom() {
@@ -111,20 +159,18 @@ public class AllocateClient{
 			@Override
 			public void onNext(meetingRoomResponse value) {
 				System.out.println("Receiving name: " + value.getMeetingRoom());
+				textResponse.setText(value.getMeetingRoom());
 				JOptionPane.showMessageDialog(null, value.getMeetingRoom());
-				
 			}
 
 			@Override
 			public void onError(Throwable t) {
-				// TODO Auto-generated method stub
-				
+				t.printStackTrace();
 			}
 
 			@Override
 			public void onCompleted() {
 				System.out.println("Stream is completed");
-				
 			}
 			
 		};
@@ -132,35 +178,28 @@ public class AllocateClient{
 		StreamObserver<listofAttendeesRequest> requestObserver = asyncStub.allocateRoom(responseObserver);
 		
 		try {
-			requestObserver.onNext(listofAttendeesRequest.newBuilder().setListOfAttendees("David").build());
-			Thread.sleep(500);
-			
-			requestObserver.onNext(listofAttendeesRequest.newBuilder().setListOfAttendees("Divyaa").build());
-			Thread.sleep(500);
-			
-			requestObserver.onNext(listofAttendeesRequest.newBuilder().setListOfAttendees("Joe").build());
-			Thread.sleep(500);
-			
-			requestObserver.onNext(listofAttendeesRequest.newBuilder().setListOfAttendees("Jane").build());
-			Thread.sleep(500);
+			String input = JOptionPane.showInputDialog("Enter First Name:");
+
+			while (input != null && !input.isEmpty()) {
+				requestObserver.onNext(listofAttendeesRequest.newBuilder().setListOfAttendees(input).build());
+			    input = JOptionPane.showInputDialog("Enter next name or leave blank and click ok to finish");
+			}
 			
 			// Mark the end of requests
 			requestObserver.onCompleted();
 
 
 			// Sleep for a bit before sending the next one.
-			Thread.sleep(new Random().nextInt(1000) + 500);
-		}
-		catch (RuntimeException e) {
+			Thread.sleep(50);
+		} catch (RuntimeException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {			
 			e.printStackTrace();
 		}
 		
 		try {
-			Thread.sleep(15000);
+			Thread.sleep(100);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

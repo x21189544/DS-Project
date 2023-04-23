@@ -35,11 +35,9 @@ public class TemperatureServer extends TemperatureServiceImplBase {
 					.start();
 			logger.info("Server started, listening on " + port);
 			server.awaitTermination();
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
-		}
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
@@ -59,8 +57,7 @@ public class TemperatureServer extends TemperatureServiceImplBase {
             System.out.println("\t service_name: " +prop.getProperty("service_name"));
             System.out.println("\t service_description: " +prop.getProperty("service_description"));
 	        System.out.println("\t service_port: " +prop.getProperty("service_port"));
-		}
-		catch (IOException ex) {
+		} catch (IOException ex) {
             ex.printStackTrace();
         }
 		return prop;
@@ -84,11 +81,9 @@ public class TemperatureServer extends TemperatureServiceImplBase {
 			
 			//Wait
 			Thread.sleep(1000);
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
             System.out.println(e.getMessage());
-        } 
-		catch (InterruptedException e) {
+        } catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}

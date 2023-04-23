@@ -99,10 +99,6 @@ public class LightingGUI {
 
 				@Override
 				public void serviceResolved(ServiceEvent event) {
-					System.out.println("info port + ");
-					ServiceInfo info = event.getInfo();
-					int port1 = info.getPort();
-					System.out.println("info port + " + port1);
 					System.out.println("Lighting Service resolved: " + event.getInfo());
 					lightingServiceInfo = event.getInfo();
 					System.out.println("info + " + event.getInfo());
@@ -117,17 +113,15 @@ public class LightingGUI {
 				}
 				
 			});
-			// Wait a bit
+			// Wait 
 			Thread.sleep(2000);
 			
-			//jmdnsL.close();
-		}
-		catch (UnknownHostException e) {
+			jmdnsL.close();
+		} catch (UnknownHostException e) {
 			System.out.println(e.getMessage());
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -159,9 +153,9 @@ public class LightingGUI {
 		panel_selectArea.setBackground(Color.green);
 		JLabel label_selectArea = new JLabel("Choose Area Code");
 		panel_selectArea.add(label_selectArea);
-		//Jcombobox for dropdown of Area Codes
+		//Jcombobox for drop down of Area Codes
 		JComboBox comboSelectArea = new JComboBox();
-		comboSelectArea.setModel(new DefaultComboBoxModel(new String[] {"Floor 1", "Floor 2", "Floor 3"}));
+		comboSelectArea.setModel(new DefaultComboBoxModel(new String[] {"Floor 1", "Floor 2", "Floor 3", "Meeting Room A", "Meeting Room B", "Meeting Room C"}));
 		panel_selectArea.add(comboSelectArea);
 		
 		//JPanel3 for Buttons
@@ -234,11 +228,10 @@ public class LightingGUI {
 		frame.getContentPane().add(panel_textBox);
 		panel_textBox.setLayout(new FlowLayout(FlowLayout.CENTER, 25, 0));
 		panel_textBox.setBackground(Color.green);
-		textResponse = new JTextArea(3,20);
+		textResponse = new JTextArea(2,25);
 		textResponse.setLineWrap(true);
 		textResponse.setWrapStyleWord(true);
 		panel_textBox.add(textResponse);
 	}
 	
-
 }

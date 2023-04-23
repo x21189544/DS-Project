@@ -4,7 +4,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Random;
 import java.util.logging.Logger;
@@ -38,9 +37,11 @@ public class AccessServer extends AccessServiceImplBase{
 			logger.info("Server started, listening on " + port);
 			server.awaitTermination();
 		}
+		//Catch IOException
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+		//Catch InterruptedException
 		catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -61,8 +62,7 @@ public class AccessServer extends AccessServiceImplBase{
             System.out.println("\t service_name: " +prop.getProperty("service_name"));
             System.out.println("\t service_description: " +prop.getProperty("service_description"));
 	        System.out.println("\t service_port: " +prop.getProperty("service_port"));
-		}
-		catch (IOException ex) {
+		} catch (IOException ex) {
             ex.printStackTrace();
         }
 		return prop;
@@ -85,13 +85,12 @@ public class AccessServer extends AccessServiceImplBase{
 			System.out.printf("registrering service with type %s and name %s \n", service_type, service_name);
 			
 			//Wait
-			Thread.sleep(1000);
+			Thread.sleep(100);
 		}
 		catch (IOException e) {
             System.out.println(e.getMessage());
         } 
 		catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -100,11 +99,37 @@ public class AccessServer extends AccessServiceImplBase{
 	@Override
 	public void occupantReport(occupantReportRequest request, StreamObserver<occupantReportResponse> responseObserver) {
 		System.out.println("receiving occupant report request");
-		String getReport = request.getRequestReport();
+		//Choose random 5 names from 10 to stream to client
+		for (int i = 0; i < 5; i++) {
+			Random random = new Random();
+			int randomNumber = random.nextInt(10) + 1;
+			   String response = "";
+			    if (randomNumber == 1) {
+			      response = "David Scallan-Walsh";
+			    } else if (randomNumber == 2) {
+			      response = "Joe Bloggs";
+			    } else if (randomNumber == 3) {
+			      response = "Jane Doe";
+			    } else if (randomNumber == 4) {
+			      response = "John Doe";
+			    } else if (randomNumber == 5) {
+			      response = "Mary Murphy";
+			    } else if (randomNumber == 6) {
+			      response = "Patrick Smith";
+			    } else if (randomNumber == 7) {
+			      response = "Kevin Clark";
+			    } else if (randomNumber == 8) {
+			      response = "Alice Jones";
+			    } else if (randomNumber == 9) {
+			      response = "Angela Turner";
+			    } else if (randomNumber == 10) {
+			      response = "Margaret Jones";
+			    }
+			System.out.println("Starting response " + response);
+			occupantReportResponse reply = occupantReportResponse.newBuilder().setReportResponse(response).build();
+			responseObserver.onNext(reply);
+			}
 		
-		String msg = "asdf, adfasdf,a dfasd,adf a,df a,sd,asdf,asd";
-		occupantReportResponse reply = occupantReportResponse.newBuilder().setReportResponse(msg).build();
-		responseObserver.onNext(reply);
 		responseObserver.onCompleted();
 	}
 	
@@ -115,16 +140,19 @@ public class AccessServer extends AccessServiceImplBase{
 						
 			@Override
 			public void onNext(occupantCheckListRequest value) {
-				System.out.println("receiving values: " + value.getListOfNames() + " is " + "in building");
-				String returnedChecklist = value.getListOfNames() + " is " + "in building";
-				occupantCheckListResponse reply = occupantCheckListResponse.newBuilder().setChecklistResponse(returnedChecklist ).build();
+				//Choose random random response of " is in the building" or " is NOT in the building" to stream to client
+				String[] items = {" is in the building", " is NOT in the building"};
+				Random rand = new Random();
+				int index = rand.nextInt(items.length);
+				System.out.println("receiving values: " + value.getListOfNames() + items[index]);
+				String returnedChecklist = (value.getListOfNames() + items[index]);
+				occupantCheckListResponse reply = occupantCheckListResponse.newBuilder().setChecklistResponse(returnedChecklist).build();
 				responseObserver.onNext(reply);
 			}
 
 			@Override
 			public void onError(Throwable t) {
-				// TODO Auto-generated method stub
-				
+				t.printStackTrace();
 			}
 
 			@Override
@@ -132,14 +160,7 @@ public class AccessServer extends AccessServiceImplBase{
 				System.out.println("reciveing complete");
 				responseObserver.onCompleted();
 			}
-			
 		};
-			
 	}
 		
-
-		
-		
-		
-	
 }

@@ -36,11 +36,9 @@ public class AllocateServer extends AllocateServiceImplBase {
 					.start();
 			logger.info("Server started, listening on " + port);
 			server.awaitTermination();
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
-		}
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
@@ -60,8 +58,7 @@ public class AllocateServer extends AllocateServiceImplBase {
             System.out.println("\t service_name: " +prop.getProperty("service_name"));
             System.out.println("\t service_description: " +prop.getProperty("service_description"));
 	        System.out.println("\t service_port: " +prop.getProperty("service_port"));
-		}
-		catch (IOException ex) {
+		} catch (IOException ex) {
             ex.printStackTrace();
         }
 		return prop;
@@ -85,12 +82,9 @@ public class AllocateServer extends AllocateServiceImplBase {
 			
 			//Wait
 			Thread.sleep(1000);
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
             System.out.println(e.getMessage());
-        } 
-		catch (InterruptedException e) {
-			
+        } catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
@@ -108,13 +102,11 @@ public class AllocateServer extends AllocateServiceImplBase {
 			public void onNext(listofAttendeesRequest value) {
 				System.out.println(value.getListOfAttendees());
 				list.add(value.getListOfAttendees());
-				
 			}
 
 			@Override
 			public void onError(Throwable t) {
-				// TODO Auto-generated method stub
-				
+				t.printStackTrace();				
 			}
 
 			@Override
@@ -123,7 +115,7 @@ public class AllocateServer extends AllocateServiceImplBase {
 				
 				String meetingRoom = "";
 				int length = list.size();
-				if(length < 5) {
+				if(length <= 5) {
 					meetingRoom = "Please use meeting room A";
 				}
 				else if(length > 5 & length < 50) {
@@ -137,8 +129,6 @@ public class AllocateServer extends AllocateServiceImplBase {
 				responseObserver.onNext(reply);
 				responseObserver.onCompleted();
 			}
-			
-
 			
 		};
 		

@@ -21,6 +21,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -92,13 +93,11 @@ public class TemperatureGUI {
 				@Override
 				public void serviceAdded(ServiceEvent event) {
 					System.out.println("Temperature Service added: " + event.getInfo());
-					
 				}
 
 				@Override
 				public void serviceRemoved(ServiceEvent event) {
 					System.out.println("Temperature Service removed: " + event.getInfo());
-					
 				}
 
 				@Override
@@ -115,17 +114,15 @@ public class TemperatureGUI {
 				}
 				
 			});
-			// Wait a bit
+			// Wait
 			Thread.sleep(2000);
 			
 			jmdns.close();
-		}
-		catch (UnknownHostException e) {
+		} catch (UnknownHostException e) {
 			System.out.println(e.getMessage());
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -135,7 +132,7 @@ public class TemperatureGUI {
 	public void initialize() {
 		frame = new JFrame();
 		frame.setTitle("GUI Client for Temperature Controller");
-		frame.setBounds(100, 100, 625, 400);
+		frame.setBounds(100, 100, 700, 400);
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		
@@ -159,9 +156,9 @@ public class TemperatureGUI {
 		panel_setTemp2.setBackground(Color.yellow);
 		JLabel setTempLabel2 = new JLabel("Choose Area Code to set Temperature");
 		panel_setTemp2.add(setTempLabel2);
-		//JCombobox for dropdown of Area Codes
+		//JCombobox for drop down of Area Codes
 		JComboBox comboAreaSet = new JComboBox();
-		comboAreaSet.setModel(new DefaultComboBoxModel(new String[] {"Floor 1", "Floor 2", "Floor 3"}));
+		comboAreaSet.setModel(new DefaultComboBoxModel(new String[] {"Floor 1", "Floor 2", "Floor 3", "Meeting Room A", "Meeting Room B", "Meeting Room C"}));
 		panel_setTemp2.add(comboAreaSet);
 		//text box for input of temperature
 		JLabel setTempLabel3 = new JLabel("Input Temperature");
@@ -173,6 +170,7 @@ public class TemperatureGUI {
 		textResponseSet = new JTextArea(3, 20);
 		textResponseSet.setLineWrap(true);
 		textResponseSet.setWrapStyleWord(true);
+		textResponseSet.setEditable(false);
 		JScrollPane scrollPaneSet = new JScrollPane(textResponseSet);
 		panel_setTemp2.add(scrollPaneSet);
 		//button to send request
@@ -187,13 +185,17 @@ public class TemperatureGUI {
 					System.out.println(comboAreaSet.getSelectedItem()); //set selected item from drop down combo box
 					String areaCode = (String) comboAreaSet.getSelectedItem(); //convert drop down item selection to string to pass to grpc
 					double temp = Double.parseDouble(tempInputSet.getText()); //parse input temperature from string to double
-					//send set temperature request
-					setTempRequest request = setTempRequest.newBuilder().setAreaCode(areaCode).setTemperature(temp).build();
-					
-					//get set temperature response
-					setTempResponse response = blockingStub.setTemp(request);
-					System.out.println("output response is +"+response); //print output response
-					textResponseSet.setText(response.getMsgResponse()); //set textResponseSet as the message response
+					if (temp >= 15 && temp <= 30) {
+						//send set temperature request
+						setTempRequest request = setTempRequest.newBuilder().setAreaCode(areaCode).setTemperature(temp).build();
+						//get set temperature response
+						setTempResponse response = blockingStub.setTemp(request);
+						System.out.println("output response is +"+response); //print output response
+						textResponseSet.setText(response.getMsgResponse()); //set textResponseSet as the message response
+					}
+					else {
+						JOptionPane.showMessageDialog(null, "Enter a value between 15.0 and 30.0");
+					}
 				}
 				//catch runtime exception
 				catch (StatusRuntimeException e1) {
@@ -221,12 +223,13 @@ public class TemperatureGUI {
 		panel_getTemp2.add(getTempLabel2);
 		//JCombobox for dropdown of Area Codes
 		JComboBox comboAreaGet = new JComboBox();
-		comboAreaGet.setModel(new DefaultComboBoxModel(new String[] {"Floor 1", "Floor 2", "Floor 3"}));
+		comboAreaGet.setModel(new DefaultComboBoxModel(new String[] {"Floor 1", "Floor 2", "Floor 3", "Meeting Room A", "Meeting Room B", "Meeting Room C"}));
 		panel_getTemp2.add(comboAreaGet);
 		//text box for output
 		textResponseGet = new JTextArea(3, 20);
 		textResponseGet .setLineWrap(true);
 		textResponseGet.setWrapStyleWord(true);
+		textResponseGet.setEditable(false);
 		JScrollPane scrollPaneGet = new JScrollPane(textResponseGet);
 		panel_getTemp2.add(scrollPaneGet);
 		//button to get request
