@@ -12,9 +12,14 @@ import javax.jmdns.ServiceInfo;
 
 import ds.smartbuilding.lighting.LightServiceGrpc.LightServiceImplBase;
 import io.grpc.Context;
+import io.grpc.Metadata;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerCall;
+import io.grpc.ServerCallHandler;
+import io.grpc.ServerInterceptor;
 import io.grpc.Status;
+import io.grpc.ServerCall.Listener;
 import io.grpc.stub.StreamObserver;
 
 public class LightingServer extends LightServiceImplBase {
@@ -23,6 +28,17 @@ public class LightingServer extends LightServiceImplBase {
 	
 	public static void main(String[] args) {
 		LightingServer lightserver = new LightingServer();
+		
+		//metadata
+		class LightingServerInterceptor implements ServerInterceptor{
+			
+			@Override
+			public <ReqT, RespT> Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call, Metadata headers,
+					ServerCallHandler<ReqT, RespT> next) {
+				logger.info("Recieved following metadata: " + headers);
+				return next.startCall(call, headers);
+			}
+		}
 		//set properties
 		Properties prop = lightserver.getProperties();
 		//RegisterService
@@ -33,6 +49,7 @@ public class LightingServer extends LightServiceImplBase {
 		try {
 			Server server = ServerBuilder.forPort(port)
 					.addService(lightserver)
+					.intercept(new LightingServerInterceptor())
 					.build()
 					.start();
 			logger.info("Server started, listening on " + port);

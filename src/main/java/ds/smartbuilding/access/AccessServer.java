@@ -13,9 +13,14 @@ import javax.jmdns.ServiceInfo;
 
 import ds.smartbuilding.access.AccessServiceGrpc.AccessServiceImplBase;
 import io.grpc.Context;
+import io.grpc.Metadata;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerCall;
+import io.grpc.ServerCallHandler;
+import io.grpc.ServerInterceptor;
 import io.grpc.Status;
+import io.grpc.ServerCall.Listener;
 import io.grpc.stub.StreamObserver;
 
 public class AccessServer extends AccessServiceImplBase{
@@ -24,6 +29,17 @@ public class AccessServer extends AccessServiceImplBase{
 	
 	public static void main(String[] args) {
 		AccessServer accessServer = new AccessServer();
+		
+		//metadata
+		class AccessServerInterceptor implements ServerInterceptor{
+			
+			@Override
+			public <ReqT, RespT> Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call, Metadata headers,
+					ServerCallHandler<ReqT, RespT> next) {
+				logger.info("Recieved following metadata: " + headers);
+				return next.startCall(call, headers);
+			}
+		}
 		//set properties
 		Properties prop = accessServer.getProperties();
 		//RegisterService
@@ -34,6 +50,7 @@ public class AccessServer extends AccessServiceImplBase{
 		try {
 			Server server = ServerBuilder.forPort(port)
 					.addService(accessServer)
+					.intercept(new AccessServerInterceptor())
 					.build()
 					.start();
 			logger.info("Server started, listening on " + port);

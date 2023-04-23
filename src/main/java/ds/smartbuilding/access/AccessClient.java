@@ -1,5 +1,7 @@
 package ds.smartbuilding.access;
 
+import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
+
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
@@ -22,8 +24,16 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
+import io.grpc.CallOptions;
+import io.grpc.Channel;
+import io.grpc.ClientCall;
+import io.grpc.ClientInterceptor;
+import io.grpc.ForwardingClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor;
+import io.grpc.ClientCall.Listener;
 import io.grpc.stub.StreamObserver;
 
 public class AccessClient {
@@ -71,6 +81,7 @@ public class AccessClient {
 		ManagedChannel channel = ManagedChannelBuilder
 				.forAddress(host, port)
 				.usePlaintext()
+				.intercept(new AccessInterceptor())
 				.build();
 		
 		//stubs
@@ -122,6 +133,22 @@ public class AccessClient {
 			System.out.println(e.getMessage());
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	//MetaData
+	static class AccessInterceptor implements ClientInterceptor{
+		@Override
+		public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(MethodDescriptor<ReqT, RespT> method,
+				CallOptions callOptions, Channel next) {
+			return new ForwardingClientCall.SimpleForwardingClientCall<ReqT, RespT>(next.newCall(method, callOptions)) {
+		         @Override
+		         public void start(Listener<RespT>responseListener, Metadata headers) {
+		            headers.put(Metadata.Key.of("METADATA", ASCII_STRING_MARSHALLER), " my access metadata ");
+		            logger.info("Added metadata" + headers);
+		            super.start(responseListener, headers);   
+		         }
+			};
 		}
 	}
 	
@@ -204,7 +231,8 @@ public class AccessClient {
 			
 		};
 		
-		asyncStub.withDeadlineAfter(15000, TimeUnit.MILLISECONDS).occupantReport(request, responseObserver);
+		CallOptions.Key<String> metaDataKey = CallOptions.Key.create("my_key");
+		asyncStub.withOption(metaDataKey, "bar").withDeadlineAfter(15000, TimeUnit.MILLISECONDS).occupantReport(request, responseObserver);
 		
 		try {
 			Thread.sleep(100);
@@ -238,7 +266,8 @@ public class AccessClient {
 			
 		};
 		
-		StreamObserver<occupantCheckListRequest> requestObserver = asyncStub.withDeadlineAfter(15000, TimeUnit.MILLISECONDS).occupantCheckList(responseObserver);
+		CallOptions.Key<String> metaDataKey = CallOptions.Key.create("my_key");
+		StreamObserver<occupantCheckListRequest> requestObserver = asyncStub.withOption(metaDataKey, "bar").withDeadlineAfter(15000, TimeUnit.MILLISECONDS).occupantCheckList(responseObserver);
 		try {
 			System.out.println("sending stream");
 			String input = JOptionPane.showInputDialog("Enter Name:");

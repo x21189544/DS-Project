@@ -13,9 +13,14 @@ import javax.jmdns.ServiceInfo;
 
 import ds.smartbuilding.allocate.AllocateServiceGrpc.AllocateServiceImplBase;
 import io.grpc.Context;
+import io.grpc.Metadata;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerCall;
+import io.grpc.ServerCallHandler;
+import io.grpc.ServerInterceptor;
 import io.grpc.Status;
+import io.grpc.ServerCall.Listener;
 import io.grpc.stub.StreamObserver;
 
 public class AllocateServer extends AllocateServiceImplBase {
@@ -24,6 +29,17 @@ public class AllocateServer extends AllocateServiceImplBase {
 	
 	public static void main(String[] args) {
 		AllocateServer allocateserver = new AllocateServer();
+		
+		//metadata
+		class AllocateServerInterceptor implements ServerInterceptor{
+			
+			@Override
+			public <ReqT, RespT> Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call, Metadata headers,
+					ServerCallHandler<ReqT, RespT> next) {
+				logger.info("Recieved following metadata: " + headers);
+				return next.startCall(call, headers);
+			}
+		}
 		//set properties
 		Properties prop = allocateserver.getProperties();
 		//RegisterService
@@ -34,6 +50,7 @@ public class AllocateServer extends AllocateServiceImplBase {
 		try {
 			Server server = ServerBuilder.forPort(port)
 					.addService(allocateserver)
+					.intercept(new AllocateServerInterceptor())
 					.build()
 					.start();
 			logger.info("Server started, listening on " + port);

@@ -1,5 +1,7 @@
 package ds.smartbuilding.temperature;
 
+import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
+
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
@@ -28,8 +30,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import io.grpc.CallOptions;
+import io.grpc.Channel;
+import io.grpc.ClientCall;
+import io.grpc.ClientInterceptor;
+import io.grpc.ForwardingClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor;
 import io.grpc.StatusRuntimeException;
 
 public class TemperatureGUI {
@@ -75,6 +84,7 @@ public class TemperatureGUI {
 		ManagedChannel channel = ManagedChannelBuilder
 				.forAddress(host, port)
 				.usePlaintext()
+				.intercept(new TemperatureInterceptor())
 				.build();
 		
 		//stubs
@@ -129,7 +139,23 @@ public class TemperatureGUI {
 		}
 		
 	}
-
+	
+	//MetaData
+	static class TemperatureInterceptor implements ClientInterceptor{
+		@Override
+		public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(MethodDescriptor<ReqT, RespT> method,
+				CallOptions callOptions, Channel next) {
+			return new ForwardingClientCall.SimpleForwardingClientCall<ReqT, RespT>(next.newCall(method, callOptions)) {
+		         @Override
+		         public void start(Listener<RespT>responseListener, Metadata headers) {
+		            headers.put(Metadata.Key.of("METADATA", ASCII_STRING_MARSHALLER), " my temperature metadata ");
+		            logger.info("Added metadata" + headers);
+		            super.start(responseListener, headers);   
+		         }
+			};
+		}
+	}
+	
 	//Initialize JFrame
 	public void initialize() {
 		frame = new JFrame();
@@ -190,8 +216,9 @@ public class TemperatureGUI {
 					if (temp >= 15 && temp <= 30) {
 						//send set temperature request
 						setTempRequest request = setTempRequest.newBuilder().setAreaCode(areaCode).setTemperature(temp).build();
-						//get set temperature response
-						setTempResponse response = blockingStub.withDeadlineAfter(2000, TimeUnit.MILLISECONDS).setTemp(request);
+						//get set temperature response, deadline, metadata
+						CallOptions.Key<String> metaDataKey = CallOptions.Key.create("my_key");
+						setTempResponse response = blockingStub.withOption(metaDataKey, "bar").withDeadlineAfter(2000, TimeUnit.MILLISECONDS).setTemp(request);
 						System.out.println("output response is +"+response); //print output response
 						textResponseSet.setText(response.getMsgResponse()); //set textResponseSet as the message response
 					}
@@ -248,8 +275,9 @@ public class TemperatureGUI {
 					//send get temperature request
 					getTempRequest request = getTempRequest.newBuilder().setAreaCode(areaCode).build();
 					
-					//get set temperature response
-					getTempResponse response = blockingStub.withDeadlineAfter(2000, TimeUnit.MILLISECONDS).getTemp(request);
+					//get get temperature response, deadline, metadata
+					CallOptions.Key<String> metaDataKey = CallOptions.Key.create("my_key");
+					getTempResponse response = blockingStub.withOption(metaDataKey, "bar").withDeadlineAfter(2000, TimeUnit.MILLISECONDS).getTemp(request);
 					System.out.println("Temp is: "+ response.getTemperature()); //print output response
 					String output = response.toString();
 					textResponseGet.setText(output); //set textResponseGet as the message response

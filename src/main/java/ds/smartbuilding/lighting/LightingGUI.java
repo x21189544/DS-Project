@@ -1,5 +1,7 @@
 package ds.smartbuilding.lighting;
 
+import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
+
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
@@ -25,9 +27,17 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
+import io.grpc.CallOptions;
+import io.grpc.Channel;
+import io.grpc.ClientCall;
+import io.grpc.ClientInterceptor;
+import io.grpc.ForwardingClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor;
 import io.grpc.StatusRuntimeException;
+import io.grpc.ClientCall.Listener;
 
 public class LightingGUI {
 	//create logger
@@ -70,6 +80,7 @@ public class LightingGUI {
 		ManagedChannel channel = ManagedChannelBuilder
 				.forAddress(host, port)
 				.usePlaintext()
+				.intercept(new LightingInterceptor())
 				.build();
 		
 		//stubs
@@ -128,6 +139,22 @@ public class LightingGUI {
 		}
 	}
 	
+	//MetaData
+	static class LightingInterceptor implements ClientInterceptor{
+		@Override
+		public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(MethodDescriptor<ReqT, RespT> method,
+				CallOptions callOptions, Channel next) {
+			return new ForwardingClientCall.SimpleForwardingClientCall<ReqT, RespT>(next.newCall(method, callOptions)) {
+		         @Override
+		         public void start(Listener<RespT>responseListener, Metadata headers) {
+		            headers.put(Metadata.Key.of("METADATA", ASCII_STRING_MARSHALLER), " my lighting metadata ");
+		            logger.info("Added metadata" + headers);
+		            super.start(responseListener, headers);   
+		         }
+			};
+		}
+	}
+	
 	//Initialize JFrame
 	public void initialize() {
 		frame = new JFrame();
@@ -181,8 +208,9 @@ public class LightingGUI {
 					//send turn on request
 					lightOnRequest request = lightOnRequest.newBuilder().setAreaCode(areaCode).build();
 				
-					//get turn on response
-					lightResponse response = blockingStub.withDeadlineAfter(1000, TimeUnit.MILLISECONDS).lightOn(request);
+					//get turn on response, deadline, metadata
+					CallOptions.Key<String> metaDataKey = CallOptions.Key.create("my_key");
+					lightResponse response = blockingStub.withOption(metaDataKey, "bar").withDeadlineAfter(1000, TimeUnit.MILLISECONDS).lightOn(request);
 					System.out.println("Lights in area "+ areaCode + " turned on.");
 					textResponse.setText(response.getMsgResponse()); //set textResponseSet as the message response
 				}
@@ -206,8 +234,9 @@ public class LightingGUI {
 					//send turn off request
 					lightOffRequest request = lightOffRequest.newBuilder().setAreaCode(areaCode).build();
 					
-					//get turn off response
-					lightResponse response = blockingStub.withDeadlineAfter(1000, TimeUnit.MILLISECONDS).lightOff(request);
+					//get turn off response, deadline, metadata
+					CallOptions.Key<String> metaDataKey = CallOptions.Key.create("my_key");
+					lightResponse response = blockingStub.withOption(metaDataKey, "bar").withDeadlineAfter(1000, TimeUnit.MILLISECONDS).lightOff(request);
 					System.out.println("Lights in area "+ areaCode + " turned off."); //print output response
 					textResponse.setText(response.getMsgResponse()); //set textResponseSet as the message response
 				}

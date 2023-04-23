@@ -13,17 +13,37 @@ import javax.jmdns.ServiceInfo;
 
 import ds.smartbuilding.temperature.TemperatureServiceGrpc.TemperatureServiceImplBase;
 import io.grpc.Context;
+import io.grpc.Metadata;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerCall;
+import io.grpc.ServerCall.Listener;
+import io.grpc.ServerCallHandler;
+import io.grpc.ServerInterceptor;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+
+
 
 public class TemperatureServer extends TemperatureServiceImplBase {
 	//create logger
 	private static final Logger logger = Logger.getLogger(TemperatureServer.class.getName());
-	
+		
+	//main method
 	public static void main(String[] args){
 		TemperatureServer tempserver = new TemperatureServer();
+		
+		//metadata
+		class TemperatureServerInterceptor implements ServerInterceptor{
+			
+			@Override
+			public <ReqT, RespT> Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call, Metadata headers,
+					ServerCallHandler<ReqT, RespT> next) {
+				logger.info("Recieved following metadata: " + headers);
+				return next.startCall(call, headers);
+			}
+		}
+		
 		//set properties
 		Properties prop = tempserver.getProperties();
 		//RegisterService
@@ -33,6 +53,7 @@ public class TemperatureServer extends TemperatureServiceImplBase {
 		try {
 			Server server = ServerBuilder.forPort(port)
 					.addService(tempserver)
+					.intercept(new TemperatureServerInterceptor())
 					.build()
 					.start();
 			logger.info("Server started, listening on " + port);
@@ -109,8 +130,6 @@ public class TemperatureServer extends TemperatureServiceImplBase {
 		
 		responseObserver.onNext(reply);
 		responseObserver.onCompleted();
-		
-		
 	}
 	
 	//get Temperature Method gRPC
