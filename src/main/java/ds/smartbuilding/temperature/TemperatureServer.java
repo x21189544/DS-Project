@@ -12,8 +12,10 @@ import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceInfo;
 
 import ds.smartbuilding.temperature.TemperatureServiceGrpc.TemperatureServiceImplBase;
+import io.grpc.Context;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 public class TemperatureServer extends TemperatureServiceImplBase {
@@ -100,8 +102,15 @@ public class TemperatureServer extends TemperatureServiceImplBase {
 		//Set Temperature response
 		String msg = "Area code " + area + " set to temperature " + temp;
 		setTempResponse reply = setTempResponse.newBuilder().setMsgResponse(msg).build();
+		if (Context.current().isCancelled()) {
+			responseObserver.onError(Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
+			 return;
+		}
+		
 		responseObserver.onNext(reply);
 		responseObserver.onCompleted();
+		
+		
 	}
 	
 	//get Temperature Method gRPC
@@ -118,8 +127,14 @@ public class TemperatureServer extends TemperatureServiceImplBase {
         double returnTemp = Math.round(randomValue * 10) / 10.0;
 		
         //Get Temperature response
-		getTempResponse reply = getTempResponse.newBuilder().setTemperature(returnTemp).build();
+        getTempResponse reply = getTempResponse.newBuilder().setTemperature(returnTemp).build();
+        if (Context.current().isCancelled())  {
+        	responseObserver.onError(Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
+		}
+	
 		responseObserver.onNext(reply);
 		responseObserver.onCompleted();
+		
 	}
+	
 }

@@ -12,8 +12,10 @@ import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceInfo;
 
 import ds.smartbuilding.allocate.AllocateServiceGrpc.AllocateServiceImplBase;
+import io.grpc.Context;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 public class AllocateServer extends AllocateServiceImplBase {
@@ -126,6 +128,10 @@ public class AllocateServer extends AllocateServiceImplBase {
 				}
 				
 				meetingRoomResponse reply = meetingRoomResponse.newBuilder().setMeetingRoom(meetingRoom).build();
+				if (Context.current().isCancelled()) {
+					responseObserver.onError(Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
+					 return;
+				}
 				responseObserver.onNext(reply);
 				responseObserver.onCompleted();
 			}

@@ -12,8 +12,10 @@ import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceInfo;
 
 import ds.smartbuilding.access.AccessServiceGrpc.AccessServiceImplBase;
+import io.grpc.Context;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 public class AccessServer extends AccessServiceImplBase{
@@ -127,13 +129,17 @@ public class AccessServer extends AccessServiceImplBase{
 			    }
 			System.out.println("Starting response " + response);
 			occupantReportResponse reply = occupantReportResponse.newBuilder().setReportResponse(response).build();
+			if (Context.current().isCancelled()) {
+				responseObserver.onError(Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
+				return;
+			}
 			responseObserver.onNext(reply);
 			}
 		
 		responseObserver.onCompleted();
 	}
 	
-	
+	//occupant checklist method
 	public StreamObserver<occupantCheckListRequest> occupantCheckList(StreamObserver<occupantCheckListResponse> responseObserver) {
 		
 		return new StreamObserver<occupantCheckListRequest>() {
@@ -147,6 +153,10 @@ public class AccessServer extends AccessServiceImplBase{
 				System.out.println("receiving values: " + value.getListOfNames() + items[index]);
 				String returnedChecklist = (value.getListOfNames() + items[index]);
 				occupantCheckListResponse reply = occupantCheckListResponse.newBuilder().setChecklistResponse(returnedChecklist).build();
+				if (Context.current().isCancelled()) {
+					responseObserver.onError(Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
+					 return;
+				}
 				responseObserver.onNext(reply);
 			}
 

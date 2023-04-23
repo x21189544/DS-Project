@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -59,7 +60,7 @@ public class LightingGUI {
 	}
 	
 	//create application
-	public LightingGUI() {
+	public LightingGUI() throws Exception {
 		String light_service_type = "_light._tcp.local.";
 		discoverLightingService(light_service_type);
 		//get host and port variables
@@ -76,6 +77,7 @@ public class LightingGUI {
 		
 		//call method
 		initialize();
+		
 	}
 	
 	//discover jmdns
@@ -180,7 +182,7 @@ public class LightingGUI {
 					lightOnRequest request = lightOnRequest.newBuilder().setAreaCode(areaCode).build();
 				
 					//get turn on response
-					lightResponse response = blockingStub.lightOn(request);
+					lightResponse response = blockingStub.withDeadlineAfter(1000, TimeUnit.MILLISECONDS).lightOn(request);
 					System.out.println("Lights in area "+ areaCode + " turned on.");
 					textResponse.setText(response.getMsgResponse()); //set textResponseSet as the message response
 				}
@@ -205,7 +207,7 @@ public class LightingGUI {
 					lightOffRequest request = lightOffRequest.newBuilder().setAreaCode(areaCode).build();
 					
 					//get turn off response
-					lightResponse response = blockingStub.lightOff(request);
+					lightResponse response = blockingStub.withDeadlineAfter(1000, TimeUnit.MILLISECONDS).lightOff(request);
 					System.out.println("Lights in area "+ areaCode + " turned off."); //print output response
 					textResponse.setText(response.getMsgResponse()); //set textResponseSet as the message response
 				}

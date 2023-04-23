@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.jmdns.JmDNS;
@@ -203,7 +204,7 @@ public class AccessClient {
 			
 		};
 		
-		asyncStub.occupantReport(request, responseObserver);
+		asyncStub.withDeadlineAfter(15000, TimeUnit.MILLISECONDS).occupantReport(request, responseObserver);
 		
 		try {
 			Thread.sleep(100);
@@ -237,7 +238,7 @@ public class AccessClient {
 			
 		};
 		
-		StreamObserver<occupantCheckListRequest> requestObserver = asyncStub.occupantCheckList(responseObserver);
+		StreamObserver<occupantCheckListRequest> requestObserver = asyncStub.withDeadlineAfter(15000, TimeUnit.MILLISECONDS).occupantCheckList(responseObserver);
 		try {
 			System.out.println("sending stream");
 			String input = JOptionPane.showInputDialog("Enter Name:");

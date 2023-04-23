@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,7 +64,7 @@ public class TemperatureGUI {
 	}
 	
 	//create application
-	public TemperatureGUI() {
+	public TemperatureGUI() throws InterruptedException {
 		String temp_service_type = "_temperature._tcp.local.";
 		discoverTempService(temp_service_type);
 		//get host and port variables
@@ -80,7 +81,8 @@ public class TemperatureGUI {
 		blockingStub = TemperatureServiceGrpc.newBlockingStub(channel);
 		
 		//call method
-		initialize();
+		 initialize();
+		
 	}
 	
 	//discover jmdns
@@ -189,7 +191,7 @@ public class TemperatureGUI {
 						//send set temperature request
 						setTempRequest request = setTempRequest.newBuilder().setAreaCode(areaCode).setTemperature(temp).build();
 						//get set temperature response
-						setTempResponse response = blockingStub.setTemp(request);
+						setTempResponse response = blockingStub.withDeadlineAfter(2000, TimeUnit.MILLISECONDS).setTemp(request);
 						System.out.println("output response is +"+response); //print output response
 						textResponseSet.setText(response.getMsgResponse()); //set textResponseSet as the message response
 					}
@@ -247,7 +249,7 @@ public class TemperatureGUI {
 					getTempRequest request = getTempRequest.newBuilder().setAreaCode(areaCode).build();
 					
 					//get set temperature response
-					getTempResponse response = blockingStub.getTemp(request);
+					getTempResponse response = blockingStub.withDeadlineAfter(2000, TimeUnit.MILLISECONDS).getTemp(request);
 					System.out.println("Temp is: "+ response.getTemperature()); //print output response
 					String output = response.toString();
 					textResponseGet.setText(output); //set textResponseGet as the message response

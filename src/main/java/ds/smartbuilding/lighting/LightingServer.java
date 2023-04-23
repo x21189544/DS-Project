@@ -11,8 +11,10 @@ import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceInfo;
 
 import ds.smartbuilding.lighting.LightServiceGrpc.LightServiceImplBase;
+import io.grpc.Context;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 public class LightingServer extends LightServiceImplBase {
@@ -100,6 +102,10 @@ public class LightingServer extends LightServiceImplBase {
 		//Light On response
 		String msg = "Light turned on in area: " + area;
 		lightResponse reply = lightResponse.newBuilder().setMsgResponse(msg).build();
+		if (Context.current().isCancelled()) {
+			responseObserver.onError(Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
+			 return;
+		}
 		responseObserver.onNext(reply);
 		responseObserver.onCompleted();
 	}
@@ -115,6 +121,10 @@ public class LightingServer extends LightServiceImplBase {
 		//Light Off response
 		String msg = "Light turned Off in area: " + area;
 		lightResponse reply = lightResponse.newBuilder().setMsgResponse(msg).build();
+		if (Context.current().isCancelled()) {
+			responseObserver.onError(Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
+			 return;
+		}
 		responseObserver.onNext(reply);
 		responseObserver.onCompleted();
 	}

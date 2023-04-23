@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.jmdns.JmDNS;
@@ -175,7 +176,7 @@ public class AllocateClient{
 			
 		};
 		
-		StreamObserver<listofAttendeesRequest> requestObserver = asyncStub.allocateRoom(responseObserver);
+		StreamObserver<listofAttendeesRequest> requestObserver = asyncStub.withDeadlineAfter(1, TimeUnit.MINUTES).allocateRoom(responseObserver);
 		
 		try {
 			String input = JOptionPane.showInputDialog("Enter First Name:");
