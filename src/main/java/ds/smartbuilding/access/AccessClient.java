@@ -232,7 +232,7 @@ public class AccessClient {
 		};
 		
 		CallOptions.Key<String> metaDataKey = CallOptions.Key.create("my_key");
-		asyncStub.withOption(metaDataKey, "bar").withDeadlineAfter(15000, TimeUnit.MILLISECONDS).occupantReport(request, responseObserver);
+		asyncStub.withOption(metaDataKey, "bar").withDeadlineAfter(3, TimeUnit.MINUTES).occupantReport(request, responseObserver);
 		
 		try {
 			Thread.sleep(100);
@@ -267,7 +267,7 @@ public class AccessClient {
 		};
 		
 		CallOptions.Key<String> metaDataKey = CallOptions.Key.create("my_key");
-		StreamObserver<occupantCheckListRequest> requestObserver = asyncStub.withOption(metaDataKey, "bar").withDeadlineAfter(15000, TimeUnit.MILLISECONDS).occupantCheckList(responseObserver);
+		StreamObserver<occupantCheckListRequest> requestObserver = asyncStub.withOption(metaDataKey, "bar").withDeadlineAfter(3, TimeUnit.MINUTES).occupantCheckList(responseObserver);
 		try {
 			System.out.println("sending stream");
 			String input = JOptionPane.showInputDialog("Enter Name:");
